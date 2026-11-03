@@ -21,3 +21,4 @@ export function Logo({ className, href = "/" }) {
     </Link>
   );
 }
+
