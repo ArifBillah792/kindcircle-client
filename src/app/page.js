@@ -1,3 +1,4 @@
+import { SessionStatus } from "@/components/session-status";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
@@ -26,11 +27,15 @@ export default function Home() {
         community event at a time.
       </p>
 
+      <div className="mt-10 flex w-full justify-center">
+        <SessionStatus />
+      </div>
+
       <div className="mt-10 flex items-center gap-3 text-sm text-muted-foreground">
         <span className="size-2.5 rounded-full bg-primary" />
         <span className="size-2.5 rounded-full bg-terracotta" />
         <span className="size-2.5 rounded-full bg-accent" />
-        <span>Phase 1 foundation — fonts, colours and theme are ready</span>
+        <span>Community service events are on their way</span>
       </div>
     </main>
   );
