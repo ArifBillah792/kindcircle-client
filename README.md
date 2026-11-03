@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# KindCircle — Community Service Events
 
-## Getting Started
+**Live site:** https://kindcircle-client.vercel.app
 
-First, run the development server:
+KindCircle is a community-driven platform where neighbours create, join and track
+social service events in their local area — from winter clothes distributions in
+Mirpur to tree plantations by Dhanmondi Lake.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Create community events** — organise a cleanup, plantation, donation drive,
+  education session, health camp or food drive with a title, description, type,
+  thumbnail, location and a future date (past dates are blocked on both client and server).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- **Upcoming events only** — the events page automatically hides events whose date
+  has passed, with instant **search by title/location** and **filter by event type**.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **One-click joining** — anyone can view event details, and logged-in users can join;
+  duplicate joins are prevented and the volunteer count updates live.
 
-## Learn More
+- **Personal dashboards** — "Joined Events" lists everything you signed up for sorted
+  by date, and "Manage Events" lets you update or delete only the events you created.
 
-To learn more about Next.js, take a look at the following resources:
+- **Secure authentication** — email/password and GitHub login with BetterAuth,
+  password rules (uppercase, lowercase, 6+ characters) and JWT-protected APIs.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Light & dark mode** — a theme toggle that switches the entire site.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Responsive design with loading skeletons** — works smoothly on mobile, tablet and desktop.
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Frontend:** Next.js (App Router), JavaScript, Tailwind CSS, shadcn/ui
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Auth:** BetterAuth with MongoDB adapter, GitHub OAuth, JWT plugin
+
+- **Forms & validation:** react-hook-form + zod
+
+- **Backend:** Express.js + MongoDB (separate repository)
+
+## Related Repository
+
+- Server: https://github.com/ArifBillah792/kindcircle-server
