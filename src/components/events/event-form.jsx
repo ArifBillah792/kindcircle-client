@@ -1,21 +1,12 @@
 "use client";
 
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export const EVENT_TYPES = [
   "Cleanup",
@@ -33,28 +24,6 @@ export function getTomorrow() {
   return date.toLocaleDateString("en-CA");
 }
 
-const eventSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(5, "Title must be at least 5 characters")
-    .max(100, "Title must be under 100 characters"),
-  description: z
-    .string()
-    .trim()
-    .min(20, "Please describe the event in at least 20 characters"),
-  eventType: z.string().min(1, "Please choose an event type"),
-  thumbnail: z.string().trim().url("Please enter a valid image URL"),
-  location: z.string().trim().min(3, "Please enter the event location"),
-  eventDate: z
-    .string()
-    .min(1, "Please choose a date")
-    .refine(
-      (date) => date >= getTomorrow(),
-      "Event date must be in the future",
-    ),
-});
-
 const emptyValues = {
   title: "",
   description: "",
@@ -64,107 +33,152 @@ const emptyValues = {
   eventDate: "",
 };
 
-function Field({ label, id, error, children }) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      {children}
-      {error && <p className="text-sm text-destructive">{error.message}</p>}
-    </div>
-  );
+// Checks every field. Returns an object like { title: "message" } for each problem.
+function validate(values) {
+  const errors = {};
+
+  if (values.title.trim().length < 5) {
+    errors.title = "Title must be at least 5 characters";
+  }
+  if (values.description.trim().length < 20) {
+    errors.description = "Please describe the event in at least 20 characters";
+  }
+  if (!values.eventType) {
+    errors.eventType = "Please choose an event type";
+  }
+  if (!values.thumbnail.trim().startsWith("http")) {
+    errors.thumbnail = "Please enter a valid image URL (starting with http)";
+  }
+  if (values.location.trim().length < 3) {
+    errors.location = "Please enter the event location";
+  }
+  if (!values.eventDate) {
+    errors.eventDate = "Please choose a date";
+  } else if (values.eventDate < getTomorrow()) {
+    errors.eventDate = "Event date must be in the future";
+  }
+
+  return errors;
+}
+
+function FieldError({ message }) {
+  if (!message) return null;
+  return <p className="text-sm text-destructive">{message}</p>;
 }
 
 export function EventForm({ defaultValues, onSubmit, submitLabel }) {
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: zodResolver(eventSchema),
-    defaultValues: defaultValues || emptyValues,
-  });
+  const [values, setValues] = useState(defaultValues || emptyValues);
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+
+  // One handler for every input: the input's "name" says which value to update
+  function handleChange(e) {
+    setValues({ ...values, [e.target.name]: e.target.value });
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const newErrors = validate(values);
+    setErrors(newErrors);
+
+    // Stop if there is at least one error
+    if (Object.keys(newErrors).length > 0) return;
+
+    setSubmitting(true);
+    await onSubmit(values);
+    setSubmitting(false);
+  }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-      <Field label="Event title" id="title" error={errors.title}>
+    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="title">Event title</Label>
         <Input
           id="title"
+          name="title"
+          value={values.title}
+          onChange={handleChange}
           placeholder="Winter Clothes Distribution"
-          {...register("title")}
         />
-      </Field>
+        <FieldError message={errors.title} />
+      </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Event type" id="eventType" error={errors.eventType}>
-          <Controller
+        <div className="space-y-2">
+          <Label htmlFor="eventType">Event type</Label>
+          <select
+            id="eventType"
             name="eventType"
-            control={control}
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="eventType" className="w-full">
-                  <SelectValue placeholder="Choose a type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {EVENT_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </Field>
+            value={values.eventType}
+            onChange={handleChange}
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">Choose a type</option>
+            {EVENT_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          <FieldError message={errors.eventType} />
+        </div>
 
-        <Field label="Event date" id="eventDate" error={errors.eventDate}>
+        <div className="space-y-2">
+          <Label htmlFor="eventDate">Event date</Label>
           <Input
             id="eventDate"
+            name="eventDate"
             type="date"
             min={getTomorrow()}
-            {...register("eventDate")}
+            value={values.eventDate}
+            onChange={handleChange}
           />
-        </Field>
+          <FieldError message={errors.eventDate} />
+        </div>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Location" id="location" error={errors.location}>
+        <div className="space-y-2">
+          <Label htmlFor="location">Location</Label>
           <Input
             id="location"
+            name="location"
+            value={values.location}
+            onChange={handleChange}
             placeholder="Mirpur 10, Dhaka"
-            {...register("location")}
           />
-        </Field>
+          <FieldError message={errors.location} />
+        </div>
 
-        <Field
-          label="Thumbnail image URL"
-          id="thumbnail"
-          error={errors.thumbnail}
-        >
+        <div className="space-y-2">
+          <Label htmlFor="thumbnail">Thumbnail image URL</Label>
           <Input
             id="thumbnail"
+            name="thumbnail"
+            value={values.thumbnail}
+            onChange={handleChange}
             placeholder="https://images.unsplash.com/..."
-            {...register("thumbnail")}
           />
-        </Field>
+          <FieldError message={errors.thumbnail} />
+        </div>
       </div>
 
-      <Field label="Description" id="description" error={errors.description}>
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
+          name="description"
           rows={5}
+          value={values.description}
+          onChange={handleChange}
           placeholder="What will volunteers do, what should they bring, and who will this help?"
-          {...register("description")}
         />
-      </Field>
+        <FieldError message={errors.description} />
+      </div>
 
-      <Button
-        type="submit"
-        size="lg"
-        className="w-full"
-        disabled={isSubmitting}
-      >
-        {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+      <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+        {submitting && <Loader2 className="size-4 animate-spin" />}
         {submitLabel}
       </Button>
     </form>
