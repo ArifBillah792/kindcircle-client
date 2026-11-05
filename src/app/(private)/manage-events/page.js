@@ -10,23 +10,14 @@ import { PageHeading } from "@/components/page-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { apiFetch } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 
 export default function ManageEventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  // The id of the event whose card is asking "Delete this event?" (null = none)
+  const [confirmId, setConfirmId] = useState(null);
 
   useEffect(() => {
     apiFetch("/my-events", { auth: true })
@@ -39,6 +30,7 @@ export default function ManageEventsPage() {
     try {
       await apiFetch(`/events/${id}`, { method: "DELETE", auth: true });
       setEvents((prev) => prev.filter((event) => event._id !== id));
+      setConfirmId(null);
       toast.success("Event deleted");
     } catch (error) {
       toast.error(error.message);
@@ -97,7 +89,7 @@ export default function ManageEventsPage() {
                 </h3>
                 <div className="space-y-1.5 text-sm text-muted-foreground">
                   <p className="flex items-center gap-2">
-                    <CalendarDays className="size-4 text-primary" />
+                    <CalendarDays className="size-4 text-primary" />{" "}
                     {formatDate(event.eventDate)}
                   </p>
                   <p className="flex items-center gap-2">
@@ -105,42 +97,47 @@ export default function ManageEventsPage() {
                     <span className="line-clamp-1">{event.location}</span>
                   </p>
                   <p className="flex items-center gap-2">
-                    <Users className="size-4 text-primary" />
+                    <Users className="size-4 text-primary" />{" "}
                     {event.participantCount || 0} joined
                   </p>
                 </div>
 
-                <div className="mt-auto grid grid-cols-2 gap-2">
-                  <Button asChild variant="outline">
-                    <Link href={`/manage-events/${event._id}/edit`}>
-                      <Pencil className="size-4" /> Update
-                    </Link>
-                  </Button>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive">
-                        <Trash2 className="size-4" /> Delete
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete this event?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          &quot;{event.title}&quot; and all of its volunteer
-                          sign-ups will be removed. This cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
+                <div className="mt-auto space-y-2">
+                  {confirmId === event._id ? (
+                    <>
+                      <p className="text-sm font-medium text-destructive">
+                        Delete this event and all its sign-ups?
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => setConfirmId(null)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="destructive"
                           onClick={() => handleDelete(event._id)}
                         >
                           Yes, delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button asChild variant="outline">
+                        <Link href={`/manage-events/${event._id}/edit`}>
+                          <Pencil className="size-4" /> Update
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => setConfirmId(event._id)}
+                      >
+                        <Trash2 className="size-4" /> Delete
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </article>
