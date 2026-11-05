@@ -1,6 +1,5 @@
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 
-import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/navbar";
@@ -32,14 +31,12 @@ export default function RootLayout({ children }) {
       className={`${bodyFont.variable} ${displayFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider>
-          <TooltipProvider>
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <Toaster richColors closeButton />
-          </TooltipProvider>
-        </ThemeProvider>
+        <TooltipProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <Toaster richColors closeButton />
+        </TooltipProvider>
       </body>
     </html>
   );
