@@ -3,7 +3,6 @@ import dns from "node:dns";
 import { MongoClient } from "mongodb";
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { jwt } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 
 // This machine cannot resolve MongoDB Atlas SRV records with the default DNS
@@ -15,6 +14,12 @@ const db = client.db(process.env.DB_NAME);
 
 export const auth = betterAuth({
   database: mongodbAdapter(db, { client }),
+  // Website addresses that are allowed to log in
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://kindcircle-client.vercel.app",
+  ],
   emailAndPassword: {
     enabled: true,
     // The assignment allows 6-character passwords; BetterAuth defaults to 8.
@@ -26,5 +31,5 @@ export const auth = betterAuth({
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
     },
   },
-  plugins: [jwt(), nextCookies()],
+  plugins: [nextCookies()],
 });

@@ -1,5 +1,3 @@
-import { authClient } from "@/lib/auth-client";
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // One helper for every call to the Express server
@@ -9,13 +7,14 @@ export async function apiFetch(
 ) {
   const headers = { "Content-Type": "application/json" };
 
-  // For protected routes, get a fresh JWT from BetterAuth
+  // For protected routes, get a JWT from our own /api/token route
   if (auth) {
-    const { data, error } = await authClient.token();
-    if (error || !data?.token) {
+    const tokenRes = await fetch("/api/token");
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok || !tokenData.token) {
       throw new Error("Please log in again");
     }
-    headers.Authorization = `Bearer ${data.token}`;
+    headers.Authorization = `Bearer ${tokenData.token}`;
   }
 
   const res = await fetch(`${API_URL}${path}`, {
